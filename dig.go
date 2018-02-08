@@ -111,6 +111,7 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 	}
 
 	v = v.Elem()
+	fmt.Printf("V: %#v\n", v)
 
 	for _, key := range route {
 		fmt.Printf("KEY: %#v\n", key)
