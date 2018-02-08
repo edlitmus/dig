@@ -116,24 +116,12 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 		u := v
 		switch kind := v.Kind(); kind {
 		case reflect.Slice:
-			switch i := key.(type) {
-			case int:
-				if i < v.Len() {
-					v = v.Index(i)
-				} else {
-					return nil, fmt.Errorf("undefined index: %d for kind: %s", i, kind)
-				}
+			v, err = checkSlice(key, v)
+			if err != nil {
+				return &v, err
 			}
 		case reflect.Map:
-			vkey := reflect.ValueOf(key)
-			v = v.MapIndex(vkey)
-			if dig && !v.IsValid() {
-				u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
-				v = u.MapIndex(vkey)
-			}
-			if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-				v = v.Elem()
-			}
+			v = checkMap(key, v, u, dig)
 		}
 		if v.IsValid() {
 			if v.CanInterface() {
@@ -143,6 +131,31 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 	}
 
 	return &v, err
+}
+
+func checkSlice(key interface{}, v reflect.Value) (reflect.Value, error) {
+	switch i := key.(type) {
+	case int:
+		if i < v.Len() {
+			v = v.Index(i)
+		} else {
+			return v, fmt.Errorf("undefined index: %d", i)
+		}
+	}
+	return v, nil
+}
+
+func checkMap(key interface{}, v reflect.Value, u reflect.Value, dig bool) reflect.Value {
+	vkey := reflect.ValueOf(key)
+	v = v.MapIndex(vkey)
+	if dig && !v.IsValid() {
+		u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
+		v = u.MapIndex(vkey)
+	}
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	return v
 }
 
 // Set Starts with src (pointer to Slice or Map) tries to follow the given route, if
@@ -206,6 +219,18 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 		return fmt.Errorf("could not find the route: %#v", route)
 	}
 
+	p = convert(dv, p)
+
+	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
+		dv.Elem().Set(*p)
+	} else {
+		return fmt.Errorf("could not assign %s to %s", p.Type(), dv.Elem().Type())
+	}
+
+	return nil
+}
+
+func convert(dv reflect.Value, p *reflect.Value) *reflect.Value {
 	if dv.Elem().Type() != p.Type() {
 		// Trying conversion
 		if p.CanInterface() {
@@ -218,14 +243,7 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 			}
 		}
 	}
-
-	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
-		dv.Elem().Set(*p)
-	} else {
-		return fmt.Errorf("could not assign %s to %s", p.Type(), dv.Elem().Type())
-	}
-
-	return nil
+	return p
 }
 
 // Dig Makes a path to the given route, if the route already exists it overwrites it
