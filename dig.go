@@ -25,13 +25,12 @@ package dig
 
 import (
 	"fmt"
-	"menteslibres.net/gosexy/to"
 	"reflect"
+
+	"menteslibres.net/gosexy/to"
 )
 
-/*
-	Returns a boolean starting from a Slice or Map.
-*/
+// Bool Returns a boolean starting from a Slice or Map.
 func Bool(src interface{}, route ...interface{}) bool {
 	var b bool
 	err := Get(src, &b, route...)
@@ -41,9 +40,7 @@ func Bool(src interface{}, route ...interface{}) bool {
 	return b
 }
 
-/*
-	Returns an uint64 starting from a Slice or Map.
-*/
+// Uint64 Returns an uint64 starting from a Slice or Map.
 func Uint64(src interface{}, route ...interface{}) uint64 {
 	var i uint64
 	err := Get(src, &i, route...)
@@ -53,9 +50,7 @@ func Uint64(src interface{}, route ...interface{}) uint64 {
 	return i
 }
 
-/*
-	Returns an int64 starting from a Slice or Map.
-*/
+// Int64 Returns an int64 starting from a Slice or Map.
 func Int64(src interface{}, route ...interface{}) int64 {
 	var i int64
 	err := Get(src, &i, route...)
@@ -65,9 +60,7 @@ func Int64(src interface{}, route ...interface{}) int64 {
 	return i
 }
 
-/*
-	Returns a float32 starting from a Slice or Map.
-*/
+// Float32 Returns a float32 starting from a Slice or Map.
 func Float32(src interface{}, route ...interface{}) float32 {
 	var f float32
 	err := Get(src, &f, route...)
@@ -77,9 +70,7 @@ func Float32(src interface{}, route ...interface{}) float32 {
 	return f
 }
 
-/*
-	Returns a float64 starting from a Slice or Map.
-*/
+// Float64 Returns a float64 starting from a Slice or Map.
 func Float64(src interface{}, route ...interface{}) float64 {
 	var f float64
 	err := Get(src, &f, route...)
@@ -89,9 +80,7 @@ func Float64(src interface{}, route ...interface{}) float64 {
 	return f
 }
 
-/*
-	Returns an interface{} starting from a Slice or Map.
-*/
+// Interface Returns an interface{} starting from a Slice or Map.
 func Interface(src interface{}, route ...interface{}) interface{} {
 	var i interface{}
 	err := Get(src, &i, route...)
@@ -101,9 +90,7 @@ func Interface(src interface{}, route ...interface{}) interface{} {
 	return i
 }
 
-/*
-	Returns a string starting from a Slice or Map.
-*/
+// String Returns a string starting from a Slice or Map.
 func String(src interface{}, route ...interface{}) string {
 	var s string
 	err := Get(src, &s, route...)
@@ -113,36 +100,34 @@ func String(src interface{}, route ...interface{}) string {
 	return s
 }
 
-/*
-	Returns the element of the Slice or Map given by route.
-*/
+// pick Returns the element of the Slice or Map given by route.
 func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, error) {
-	var err error = nil
+	var err error
 
 	v := reflect.ValueOf(src)
 
 	if v.Kind() != reflect.Ptr || v.IsNil() {
-		return nil, fmt.Errorf("Source is not a pointer.")
+		return nil, fmt.Errorf("source is not a pointer")
 	}
 
 	v = v.Elem()
 
 	for _, key := range route {
 		u := v
-		switch v.Kind() {
+		switch kind := v.Kind(); kind {
 		case reflect.Slice:
 			switch i := key.(type) {
 			case int:
 				if i < v.Len() {
 					v = v.Index(i)
 				} else {
-					return nil, fmt.Errorf("Undefined index: %d.", i)
+					return nil, fmt.Errorf("undefined index: %d for kind: %s", i, kind)
 				}
 			}
 		case reflect.Map:
 			vkey := reflect.ValueOf(key)
 			v = v.MapIndex(vkey)
-			if dig == true && v.IsValid() == false {
+			if dig && !v.IsValid() {
 				u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
 				v = u.MapIndex(vkey)
 			}
@@ -150,8 +135,8 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 				v = v.Elem()
 			}
 		}
-		if v.IsValid() == true {
-			if v.CanInterface() == true {
+		if v.IsValid() {
+			if v.CanInterface() {
 				v = reflect.ValueOf(v.Interface())
 			}
 		}
@@ -160,15 +145,13 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 	return &v, err
 }
 
-/*
-	Starts with src (pointer to Slice or Map) tries to follow the given route, if
-	the route is found it then tries to set the node with the given value (val).
-*/
+// Set Starts with src (pointer to Slice or Map) tries to follow the given route, if
+// the route is found it then tries to set the node with the given value (val).
 func Set(src interface{}, val interface{}, route ...interface{}) error {
 	l := len(route)
 
 	if l < 1 {
-		return fmt.Errorf("Missing route.")
+		return fmt.Errorf("missing route")
 	}
 
 	parent := route[0 : l-1]
@@ -180,8 +163,8 @@ func Set(src interface{}, val interface{}, route ...interface{}) error {
 		return err
 	}
 
-	if p.IsValid() == false {
-		return fmt.Errorf("Given route does not exists.")
+	if !p.IsValid() {
+		return fmt.Errorf("the given route does not exists")
 	}
 
 	p.SetMapIndex(reflect.ValueOf(last[0]), reflect.ValueOf(val))
@@ -189,27 +172,25 @@ func Set(src interface{}, val interface{}, route ...interface{}) error {
 	return nil
 }
 
-/*
-	Starts with src (pointer to Slice or Map) tries to follow the given route,
-	if the route is found it then tries to copy or convert the found node into
-	the value pointed by dst.
-*/
+// Get Starts with src (pointer to Slice or Map) tries to follow the given route,
+// if the route is found it then tries to copy or convert the found node into
+// the value pointed by dst.
 func Get(src interface{}, dst interface{}, route ...interface{}) error {
 
 	if len(route) < 1 {
-		return fmt.Errorf("Missing route.")
+		return fmt.Errorf("missing route")
 	}
 
 	dv := reflect.ValueOf(dst)
 
 	if dv.Kind() != reflect.Ptr || dv.IsNil() {
-		return fmt.Errorf("Destination is not a pointer.")
+		return fmt.Errorf("destination is not a pointer")
 	}
 
 	sv := reflect.ValueOf(src)
 
 	if sv.Kind() != reflect.Ptr || sv.IsNil() {
-		return fmt.Errorf("Source is not a pointer.")
+		return fmt.Errorf("source is not a pointer")
 	}
 
 	// Setting to zero before setting it again.
@@ -221,15 +202,14 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 		return err
 	}
 
-	if p.IsValid() == false {
-		return fmt.Errorf("Could not find route.")
+	if !p.IsValid() {
+		return fmt.Errorf("could not find the route: %#v", route)
 	}
 
 	if dv.Elem().Type() != p.Type() {
 		// Trying conversion
-		if p.CanInterface() == true {
-			var t interface{}
-			t, err = to.Convert(p.Interface(), dv.Elem().Kind())
+		if p.CanInterface() {
+			t, err := to.Convert(p.Interface(), dv.Elem().Kind())
 			if err == nil {
 				tv := reflect.ValueOf(t)
 				if dv.Elem().Type() == tv.Type() {
@@ -242,20 +222,18 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
 		dv.Elem().Set(*p)
 	} else {
-		return fmt.Errorf("Could not assign %s to %s.", p.Type(), dv.Elem().Type())
+		return fmt.Errorf("could not assign %s to %s", p.Type(), dv.Elem().Type())
 	}
 
 	return nil
 }
 
-/*
-	Makes a path to the given route, if the route already exists it overwrites it
-	with a zero value.
-*/
+// Dig Makes a path to the given route, if the route already exists it overwrites it
+// with a zero value.
 func Dig(src interface{}, route ...interface{}) error {
 	v, err := pick(src, true, route...)
-	if v.IsValid() == false {
-		return fmt.Errorf("Could not reach node.")
+	if !v.IsValid() {
+		return fmt.Errorf("could not reach node")
 	}
 	return err
 }

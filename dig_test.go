@@ -292,7 +292,7 @@ func TestReddit(t *testing.T) {
 		t.Fatalf("Error: %s", err.Error())
 	}
 
-	for i, _ := range children {
+	for i := range children {
 		child := children[i].(map[string]interface{})
 		val := Float64(&child, "data", "created")
 		if val == 0.0 {
@@ -393,7 +393,7 @@ func TestJSON(t *testing.T) {
 	var b bool
 	Get(&m, &b, "PBool")
 
-	if b != true {
+	if !b {
 		t.Errorf("Test failed.")
 	}
 
