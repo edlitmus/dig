@@ -113,7 +113,9 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 	v = v.Elem()
 
 	for _, key := range route {
+		fmt.Printf("KEY: %#v\n", key)
 		u := v
+		fmt.Printf("U: %#v\n", u)
 		switch kind := v.Kind(); kind {
 		case reflect.Slice:
 			switch i := key.(type) {
