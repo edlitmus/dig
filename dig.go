@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/gosexy/to"
+	"github.com/esilva-everbridge/to"
 )
 
 // Bool Returns a boolean starting from a Slice or Map.
