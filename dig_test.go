@@ -282,11 +282,14 @@ func TestReddit(t *testing.T) {
 }
 	`
 	var m map[string]interface{}
-	json.Unmarshal([]byte(s), &m)
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	var children []interface{}
 
-	err := Get(&m, &children, "data", "children")
+	err = Get(&m, &children, "data", "children")
 
 	if err != nil {
 		t.Fatalf("Error: %s", err.Error())
@@ -367,51 +370,75 @@ func TestJSON(t *testing.T) {
 
 	var m map[string]interface{}
 
-	json.Unmarshal([]byte(jsonTest), &m)
+	err := json.Unmarshal([]byte(jsonTest), &m)
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	var s string
-	Get(&m, &s, "PMap", "17", "Tag")
+	err = Get(&m, &s, "PMap", "17", "Tag")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if s != "tag17" {
 		t.Errorf("Test failed.")
 	}
 
 	var f32 float32
-	Get(&m, &f32, "PFloat32")
+	err = Get(&m, &f32, "PFloat32")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if f32 != float32(14.1) {
 		t.Errorf("Test failed.")
 	}
 
 	var f64 float64
-	Get(&m, &f64, "PFloat32")
+	err = Get(&m, &f64, "PFloat32")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if f64 != float64(14.1) {
 		t.Errorf("Test failed.")
 	}
 
 	var b bool
-	Get(&m, &b, "PBool")
+	err = Get(&m, &b, "PBool")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if !b {
 		t.Errorf("Test failed.")
 	}
 
 	var ui64 uint64
-	Get(&m, &ui64, "PUint64")
+	err = Get(&m, &ui64, "PUint64")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if ui64 != uint64(11) {
 		t.Errorf("Test failed.")
 	}
 
 	var i int
-	Get(&m, &ui64, "String")
+	err = Get(&m, &ui64, "String")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 0 {
 		t.Errorf("Test failed.")
 	}
 
-	Get(&m, &s, "PSlice", 1, "Tag")
+	err = Get(&m, &s, "PSlice", 1, "Tag")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if s != "tag21" {
 		t.Errorf("Test failed.")
@@ -423,7 +450,10 @@ func TestJSON2(t *testing.T) {
 
 	var m map[string]interface{}
 
-	json.Unmarshal([]byte(jsonTest), &m)
+	err := json.Unmarshal([]byte(jsonTest), &m)
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	foo := map[string]string{
 		"test": String(&m, "PMap", "17", "Tag"),
@@ -453,7 +483,10 @@ func TestSet(t *testing.T) {
 		t.Errorf("ER: %v\n", err.Error())
 	}
 
-	Get(&m, &i, "path", "to", "variable")
+	err = Get(&m, &i, "path", "to", "variable")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 1 {
 		t.Errorf("Test failed.")
@@ -485,7 +518,10 @@ func TestSetN(t *testing.T) {
 		t.Errorf("ER: %v\n", err.Error())
 	}
 
-	Get(&m, &i, "path", "to", "variable")
+	err = Get(&m, &i, "path", "to", "variable")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 42 {
 		t.Errorf("Test failed.")
@@ -507,7 +543,10 @@ func TestSetSimpleMap(t *testing.T) {
 		t.Errorf("ER: %v\n", err.Error())
 	}
 
-	Get(&m, &i, "key")
+	err = Get(&m, &i, "key")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 42 {
 		t.Errorf("Test failed.")
@@ -525,7 +564,10 @@ func TestSetSimpleMap(t *testing.T) {
 		t.Errorf("Test failed.")
 	}
 
-	Get(&m, &i, "new-key")
+	err = Get(&m, &i, "new-key")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 44 {
 		t.Errorf("Test failed.")
@@ -544,9 +586,18 @@ func TestDig(t *testing.T) {
 
 	m := map[string]interface{}{}
 
-	Dig(&m, "foo", "bar", "baz")
-	Set(&m, 42, "foo", "bar", "baz")
-	Get(&m, &i, "foo", "bar", "baz")
+	err := Dig(&m, "foo", "bar", "baz")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
+	err = Set(&m, 42, "foo", "bar", "baz")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
+	err = Get(&m, &i, "foo", "bar", "baz")
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
 
 	if i != 42 {
 		t.Errorf("Test failed.")
